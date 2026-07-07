@@ -5,9 +5,11 @@ import path from 'node:path'
 const root = path.resolve(process.argv[2] ?? '.')
 const required = [
   'README.md',
+  'LICENSE',
   'Assets/PoppoWorks/AvatarBeacon',
   'Assets/PoppoWorks/AvatarBeacon/README.md',
   'Assets/PoppoWorks/AvatarBeacon/Version.txt',
+  'Assets/PoppoWorks/AvatarBeacon/LICENSES/AvatarBeacon-MIT.txt',
   'Assets/PoppoWorks/AvatarBeacon/LICENSES/YL-ATG-MIT.txt',
   'Assets/PoppoWorks/AvatarBeacon/NOTICE.md',
   'Assets/PoppoWorks/AvatarBeacon/Prefabs/AvatarBeacon_main.prefab',

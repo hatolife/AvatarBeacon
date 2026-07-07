@@ -58,7 +58,7 @@ jobs:
           zip_path="dist/${zip_name}"
           rm -rf dist "${RUNNER_TEMP}/avatarbeacon-source-check"
           mkdir -p dist "${RUNNER_TEMP}/avatarbeacon-source-check"
-          zip -r "${zip_path}" README.md Assets \
+          zip -r "${zip_path}" README.md LICENSE Assets \
             -x '*.unitypackage' '*/Library/*' '*/Temp/*' '*VRCSDK*' '*ModularAvatar*' '*Modular_Avatar*' '*Modular-Avatar*'
           hash="$(sha256sum "${zip_path}" | awk '{print $1}')"
           printf '%s  %s\n' "${hash}" "${zip_name}" > "${zip_path}.sha256"
