@@ -1,4 +1,4 @@
-# AvatarBeacon 元ファイル package
+# AvatarBeacon
 
 AvatarBeacon は、VRChat アバターから OSC Avatar Parameters へ、アバター基準の位置と向きの値を送るためのアバターギミック元ファイルです。
 

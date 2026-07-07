@@ -64,7 +64,7 @@ jobs:
           printf '%s  %s\n' "${hash}" "${zip_name}" > "${zip_path}.sha256"
           unzip -q "${zip_path}" -d "${RUNNER_TEMP}/avatarbeacon-source-check"
           node scripts/check-source-tree.mjs "${RUNNER_TEMP}/avatarbeacon-source-check"
-          sha256sum --check "${zip_path}.sha256"
+          (cd dist && sha256sum --check "${zip_name}.sha256")
 
       - name: Upload source artifact
         uses: actions/upload-artifact@v6
