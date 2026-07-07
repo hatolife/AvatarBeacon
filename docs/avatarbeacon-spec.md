@@ -20,19 +20,16 @@ Unity側で `.unitypackage` を手作業作成するときも、外部依存本�
 
 ## 追跡対象
 
-Prefab root直下の `point` が位置用の追跡対象、`HeadForwardAnchor` が向き用の追跡対象です。
-READMEの手順では Modular Avatar の Bone Proxy target を `AvatarBeacon_12/point` または `AvatarBeacon_main/point` にHips、`AvatarBeacon_12/HeadForwardAnchor` または `AvatarBeacon_main/HeadForwardAnchor` にHeadを設定します。
+Prefab root直下の `point` が位置と向きの追跡対象です。
+READMEの手順では Modular Avatar の Bone Proxy target を `AvatarBeacon_12/point` または `AvatarBeacon_main/point` にHeadを設定します。
 
-これは player root そのものではありませんが、HipsはHeadよりプレイヤー位置に近いbasisとして扱います。
-ClipForVRChat 側では `avatar_beacon/coord/*` から復元したHips基準位置を `player_local` basis の位置、`avatar_beacon/forward/*` から復元したHead基準の水平forward vectorを basis yaw として使います。
+これは player root そのものではありません。
+ClipForVRChat 側では `avatar_beacon/coord/*` から復元したHead基準位置を `player_local` basis の位置、`avatar_beacon/forward/*` から復元したHead基準の水平forward vectorを basis yaw として使います。
 
 `point` は単なる見た目用オブジェクトではありません。
 MA Bone Proxyの付いた追跡アンカーであり、`WorldOriginAnchor`、`const_x`、`const_z` などのConstraintがこのTransformを参照して座標エンコードの基準にします。
+また、`offset_rot` のRotationConstraintもこのTransformを参照し、`avatar_beacon/forward/*` の生成元にします。
 そのため `point` 自体は必要です。
-
-`HeadForwardAnchor` もMA Bone Proxyの付いた追跡アンカーです。
-`offset_rot` のRotationConstraintがこのTransformを参照し、`avatar_beacon/forward/*` の生成元になります。
-そのため、位置はHips、yawはHeadという分離を保つには必須です。
 
 ## OSC Parameter
 
@@ -48,7 +45,7 @@ Prefab内のparameter名はその下の相対名です。
 | position X signed | `avatar_beacon/coord/x` | `/avatar/parameters/avatar_beacon/coord/x` | 追跡対象 `point` のworld X座標を符号込みで表す。 |
 | position Y signed | `avatar_beacon/coord/y` | `/avatar/parameters/avatar_beacon/coord/y` | 追跡対象 `point` のworld Y座標を符号込みで表す。 |
 | position Z signed | `avatar_beacon/coord/z` | `/avatar/parameters/avatar_beacon/coord/z` | 追跡対象 `point` のworld Z座標を符号込みで表す。 |
-| forward X signed | `avatar_beacon/forward/x` | `/avatar/parameters/avatar_beacon/forward/x` | `HeadForwardAnchor` の向きから作るforward vectorのX成分を符号込みで表す。 |
+| forward X signed | `avatar_beacon/forward/x` | `/avatar/parameters/avatar_beacon/forward/x` | `point` の向きから作るforward vectorのX成分を符号込みで表す。 |
 | forward Y signed | `avatar_beacon/forward/y` | `/avatar/parameters/avatar_beacon/forward/y` | Head基準forward vectorのY成分を符号込みで表す。 |
 | forward Z signed | `avatar_beacon/forward/z` | `/avatar/parameters/avatar_beacon/forward/z` | Head基準forward vectorのZ成分を符号込みで表す。 |
 
@@ -64,7 +61,7 @@ Prefab内のparameter名はその下の相対名です。
 | position Y sign | `avatar_beacon/coord/ySign` | `/avatar/parameters/avatar_beacon/coord/ySign` | Y座標の符号。復元時に `avatar_beacon/coord/y` と組み合わせる。 |
 | position Z magnitude | `avatar_beacon/coord/z` | `/avatar/parameters/avatar_beacon/coord/z` | 追跡対象 `point` のworld Z座標の絶対値側。前後方向のbasis位置に使う。 |
 | position Z sign | `avatar_beacon/coord/zSign` | `/avatar/parameters/avatar_beacon/coord/zSign` | Z座標の符号。復元時に `avatar_beacon/coord/z` と組み合わせる。 |
-| forward X magnitude | `avatar_beacon/forward/x` | `/avatar/parameters/avatar_beacon/forward/x` | `HeadForwardAnchor` の向きから作るforward vectorのX成分の絶対値側。yaw算出に使う。 |
+| forward X magnitude | `avatar_beacon/forward/x` | `/avatar/parameters/avatar_beacon/forward/x` | `point` の向きから作るforward vectorのX成分の絶対値側。yaw算出に使う。 |
 | forward X sign | `avatar_beacon/forward/xSign` | `/avatar/parameters/avatar_beacon/forward/xSign` | forward X成分の符号。yaw算出前に `avatar_beacon/forward/x` と組み合わせる。 |
 | forward Y magnitude | `avatar_beacon/forward/y` | `/avatar/parameters/avatar_beacon/forward/y` | Head基準forward vectorのY成分の絶対値側。ClipForVRChatでは受信完全性の確認に使い、yaw計算には直接使わない。 |
 | forward Y sign | `avatar_beacon/forward/ySign` | `/avatar/parameters/avatar_beacon/forward/ySign` | forward Y成分の符号。`avatar_beacon/forward/y` と組み合わせて完全なforward vectorとして復元できるように残す。 |
@@ -89,7 +86,7 @@ ClipForVRChat 側の `_12` 復元は次の通りです。
 
 - `value = (1 - magnitude) * 1000`
 - `sign > 0` なら正、それ以外なら負
-- positionはHips基準の `avatar_beacon/coord/x,y,z` を使う
+- positionはHead基準の `avatar_beacon/coord/x,y,z` を使う
 - yawはHead基準の `avatar_beacon/forward/x,z` から `atan2(forward.x, forward.z)` で求める
 - `avatar_beacon/forward/y` は受信完全性の確認には使うが、`player_local` のyaw計算には直接使わない
 
@@ -98,7 +95,7 @@ ClipForVRChat は `xSign` などの `*Sign` parameterが1つも届いていな�
 
 - `signed = raw * 2 - 1`
 - `value = signed * 1000`
-- positionはHips基準の `avatar_beacon/coord/x,y,z` を使う
+- positionはHead基準の `avatar_beacon/coord/x,y,z` を使う
 - yawはHead基準の `avatar_beacon/forward/x,z` から `atan2(forward.x, forward.z)` で求める
 
 `AvatarBeacon_main.prefab` のContact構成は静的YAML編集で入れているため、Unity/VRChat実機で `0.5` 付近がゼロ、`0.0` 付近が負、`1.0` 付近が正としてOSC出力されることを確認してください。
@@ -172,8 +169,7 @@ AvatarBeacon
 │       │   ├── Y
 │       │   └── Z
 │       └── Rot_flag
-├── point
-├── HeadForwardAnchor
+└── point
 ```
 
 ### Root `AvatarBeacon_main` / `AvatarBeacon_12`
@@ -186,19 +182,11 @@ Modular Avatar Parameters相当のComponentで、`avatar_beacon/coord/*` と `av
 
 ### `point`
 
-位置追跡対象の基準Transformです。
-Modular Avatar Bone Proxy相当のComponentを持ち、既定ではHipsへ追従します。
+位置とforward/yaw追跡対象の基準Transformです。
+Modular Avatar Bone Proxy相当のComponentを持ち、既定ではHeadへ追従します。
 必要に応じて任意のBone/Transformへ差し替えられます。
 
-このオブジェクトがないと、どのアバターTransformを座標出力対象にするかを指定できないため必須です。
-
-### `HeadForwardAnchor`
-
-yaw/forward追跡対象の基準Transformです。
-Modular Avatar Bone Proxy相当のComponentを持ち、既定ではHeadへ追従します。
-
-`offset_rot` のRotationConstraintがこのTransformを参照し、`avatar_beacon/forward/*` のContact経路へHead基準の向きを渡します。
-このオブジェクトがないと、位置をHips基準にしたまま向きだけHead基準に分離できないため必須です。
+このオブジェクトがないと、どのアバターTransformを座標とforward/yawの出力対象にするかを指定できないため必須です。
 
 ### `WorldOriginAnchor`
 
@@ -220,7 +208,7 @@ ParentConstraint と Contact sender相当Componentを持ち、`WorldOriginAnchor
 forward vector出力の中心です。
 `avatar_beacon/forward/x,y,z` のContact receiver相当Componentを持ちます。
 ClipForVRChat はこのうち水平成分 `avatar_beacon/forward/x,z` からyawを復元します。
-入力元の向きは `HeadForwardAnchor` です。
+入力元の向きは `point` です。
 
 このオブジェクトを削ると `avatar_beacon/forward/*` が出なくなるため必須です。
 
@@ -285,7 +273,7 @@ v0.1.8では、不要機能を追加しないことよりも、YL-ATGで成立�
 
 - Unity import後、`Assets/PoppoWorks/AvatarBeacon/...` として配置される。
 - `AvatarBeacon_main.prefab` と `AvatarBeacon_12.prefab` をアバターroot配下へ置ける。
-- `point` をHips基準、`HeadForwardAnchor` をHead基準に設定できる。
+- `point` をHead基準に設定できる。
 - ClipForVRChatの `avatar_osc` 受信状態または10秒summaryに `avatar_beacon/coord/*` / `avatar_beacon/forward/*` が表示される。
 - VRChat OSCで `/avatar/parameters/avatar_beacon/coord/*` と `/avatar/parameters/avatar_beacon/forward/*` が更新される。
 - 前後左右移動で `avatar_beacon/coord/*` が変化する。

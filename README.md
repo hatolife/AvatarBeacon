@@ -12,7 +12,10 @@ VRChatワールドやVRChat APIから座標を読むものではありません�
 ## 導入
 
 1. このリポジトリまたは配布source zipをUnityのアバタープロジェクトへ入れます。
-2. Unity上で `Assets/PoppoWorks/AvatarBeacon/Prefabs/AvatarBeacon_main.prefab` をアバターroot直下へ置きます。
+2. Unity上で `Assets/PoppoWorks/AvatarBeacon` が見えることを確認します。
+3. `Assets/PoppoWorks/AvatarBeacon/Prefabs/AvatarBeacon_main.prefab` をアバターroot直下へ置きます。
+4. Modular Avatar の Bone Proxy target を設定します。
+   - `point`: Head
 5. アバターをアップロードし、VRChatでそのアバターを選びます。
 6. VRChatのOSCを有効にし、必要なら `Options > OSC > Reset OSC Config` を実行します。
 
@@ -47,6 +50,24 @@ VRChatワールドやVRChat APIから座標を読むものではありません�
 | 向きYの符号 | `avatar_beacon/forward/ySign` |
 | 向きZの大きさ | `avatar_beacon/forward/z` |
 | 向きZの符号 | `avatar_beacon/forward/zSign` |
+
+AvatarBeaconは、これらを1つのOSC messageへまとめて送るものではありません。
+VRChatのOSC Avatar Parametersの仕様通り、parameterごとに別addressで送信されます。
+
+## 仕組み
+
+AvatarBeaconは、アバター内の追跡対象TransformをContactの距離値へ変換します。
+
+- `point` は位置用の追跡対象です。
+- 通常はHeadへ追従させ、位置と向きの両方の入力元にします。
+- `WorldOriginAnchor` は座標計測の受け側です。
+- 手動で移動・回転させないでください。
+- Contact Receiverの `Proximity` 値を使い、位置や向きの成分をfloat parameterとして出します。
+- `AvatarBeacon_12.prefab` は大きさと符号を分けて出します。
+- `AvatarBeacon_main.prefab` はContact Receiverの中心と半径を調整し、符号込みのcentered floatとして出します。
+
+このため、AvatarBeaconの出力はローカルクライアント上のアバター状態とVRChat OSC設定に依存します。
+他プレイヤーへOSC packetを直接送る仕組みではありません。
 
 ## YL-ATGとの関係
 
