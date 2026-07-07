@@ -80,17 +80,20 @@ AvatarBeaconは、アバター内の追跡対象TransformをContactの距離値�
 
 ## YL-ATGとの関係
 
-AvatarBeacon は、YozoraKurage/YL-ATG `ATG_ForAvatar_V0.0.3` を元にした派生物です。
-座標をContact / Constraint / Expression Parameterで外部へ出す考え方とPrefab構成の一部を引き継いでいます。
+AvatarBeacon は、YozoraKurage/YL-ATG ATG_ForAvatar_V0.0.3 を元にした派生物です。
 
-主な変更点は次の通りです。
+簡単に言うと [ClipForVRChat](https://github.com/hatolife/ClipForVRChat) で都合がよいようにしたものです。
+中身はほぼYL-ATGです。
+簡単に変更点を記載します。
 
-- 配置先を `Assets/PoppoWorks/AvatarBeacon` に変更
-- Prefab名を `AvatarBeacon_main` / `AvatarBeacon_12` に変更
-- 公開parameterを `ATG/*` から `avatar_beacon/*` に変更
-- 位置基準をHeadではなくHipsへ変更
-- 向き用に `HeadForwardAnchor` を追加
+- 精度下げてパラメーター数を半分にしたPrefabを用意。
+  - `AvatarBeacon_main.prefab` : 6パラメータ版。
+  - `AvatarBeacon_12.prefab` : 12パラメータ版。
+  - YL-ATGのと同じ精度。
+- 向き用に HeadForwardAnchor を追加
 - 可視化用arrow mesh/materialを削除
+- 公開parameterを ATG/* から avatar_beacon/* に変更
+- 配置先を `Assets/PoppoWorks/AvatarBeacon` に変更。
 
 由来と変更範囲は `Assets/PoppoWorks/AvatarBeacon/NOTICE.md` に記録しています。
 
@@ -106,15 +109,5 @@ Copyright (c) 2024 YozoraKurage.
 
 AvatarBeaconを配布、改変、再配布する場合は、`NOTICE.md` と `LICENSES/*.txt` を一緒に含めてください。
 
-## 配布物
-
-CIは `AvatarBeacon-vX.Y.Z-source.zip` を作成します。
-このzipはUnityへコピーまたは展開して使う元ファイルです。
-
-`.unitypackage` はCIでは作りません。
-必要な場合はUnityで `Assets/PoppoWorks/AvatarBeacon` を選び、`Assets > Export Package...` から手動でexportしてください。
-VRCSDK本体、Modular Avatar本体、Unity `Library/` や `Temp/` は含めません。
-
-## 詳細仕様
-
-Prefab内GameObjectの役割、値の復元方法、削除判断の詳細は `docs/avatarbeacon-spec.md` に記録しています。
+[夜空くらげ](https://x.com/yozorakurage)さんに感謝します。
+[ClipForVRChat](https://github.com/hatolife/ClipForVRChat) でカメラをアバター基準のローカル座標系に配置する機能は、YL-ATGがないと実現できませんでした。
