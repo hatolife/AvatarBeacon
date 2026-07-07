@@ -21,7 +21,7 @@ Unity側で `.unitypackage` を手作業作成するときも、外部依存本�
 ## 追跡対象
 
 Prefab root直下の `point` が位置と向きの追跡対象です。
-READMEの手順では Modular Avatar の Bone Proxy target を `AvatarBeacon_12/point` または `AvatarBeacon_main/point` にHeadを設定します。
+Prefab内の Modular Avatar Bone Proxy は、`point` が既定でHeadに追従します。
 
 これは player root そのものではありません。
 ClipForVRChat 側では `avatar_beacon/coord/*` から復元したHead基準位置を `player_local` basis の位置、`avatar_beacon/forward/*` から復元したHead基準の水平forward vectorを basis yaw として使います。
