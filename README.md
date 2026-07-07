@@ -1,34 +1,24 @@
 # AvatarBeacon
 
 AvatarBeacon は、VRChat アバターの座標値と向きを OSC Avatar Parameters として取得できるようにする汎用アバターギミックです。
-特定の受信ツール専用ではありません。
-`avatar_beacon/*` のOSC出力を読めるツールで利用できます。
 
 ## これは何
 
-AvatarBeacon は、VRChatワールドやVRChat APIから座標を読むものではありません。
-アバター内に置いた Contact / Constraint / Modular Avatar の仕組みで、追跡対象Transformの位置と向きをExpression Parameterへ変換します。
-VRChatのOSC機能が、そのExpression Parameterを `/avatar/parameters/...` としてローカルのOSC送信先へ出します。
+AvatarBeacon は、 アバター内に置いた Contact / Constraint / Modular Avatar を使用して、
+追跡対象Transformの位置と向きをExpression Parameterへ変換します。
+VRChatのOSC機能が、そのExpression Parameterを `/avatar/parameters/avatar_beacon/...` としてローカルのOSC送信先へ出します。
+VRChatワールドやVRChat APIから座標を読むものではありません。
 
 ## 導入
 
 1. このリポジトリまたは配布source zipをUnityのアバタープロジェクトへ入れます。
-2. Unity上で `Assets/PoppoWorks/AvatarBeacon` が見えることを確認します。
-3. `Assets/PoppoWorks/AvatarBeacon/Prefabs/AvatarBeacon_main.prefab` をアバターroot直下へ置きます。
-4. Modular Avatar の Bone Proxy target を設定します。
-   - `point`: Hips
-   - `HeadForwardAnchor`: Head
+2. Unity上で `Assets/PoppoWorks/AvatarBeacon/Prefabs/AvatarBeacon_main.prefab` をアバターroot直下へ置きます。
 5. アバターをアップロードし、VRChatでそのアバターを選びます。
 6. VRChatのOSCを有効にし、必要なら `Options > OSC > Reset OSC Config` を実行します。
 
-`AvatarBeacon_main.prefab` は6個のExpression Parameterを使います。
-`AvatarBeacon_12.prefab` は12個のExpression Parameterを使います。
-
 ## 出力
 
-VRChatから外部へ出るOSC addressは、すべて `/avatar/parameters/` が付きます。
-
-`AvatarBeacon_main.prefab` は次の6個を出します。
+`AvatarBeacon_main.prefab` は次の6個のパラメータをOSCで送信します。
 値は `0.0..1.0` のcentered floatです。
 受信側では `raw * 2 - 1` に戻すと符号付き値として扱えます。
 
@@ -58,26 +48,6 @@ VRChatから外部へ出るOSC addressは、すべて `/avatar/parameters/` が�
 | 向きZの大きさ | `avatar_beacon/forward/z` |
 | 向きZの符号 | `avatar_beacon/forward/zSign` |
 
-AvatarBeaconは、これらを1つのOSC messageへまとめて送るものではありません。
-VRChatのOSC Avatar Parametersの仕様通り、parameterごとに別addressで送信されます。
-
-## 仕組み
-
-AvatarBeaconは、アバター内の追跡対象TransformをContactの距離値へ変換します。
-
-- `point` は位置用の追跡対象です。
-- 通常はHipsへ追従させます。
-- `HeadForwardAnchor` は向き用の追跡対象です。
-- 通常はHeadへ追従させます。
-- `WorldOriginAnchor` は座標計測の受け側です。
-- 手動で移動・回転させないでください。
-- Contact Receiverの `Proximity` 値を使い、位置や向きの成分をfloat parameterとして出します。
-- `AvatarBeacon_12.prefab` は大きさと符号を分けて出します。
-- `AvatarBeacon_main.prefab` はContact Receiverの中心と半径を調整し、符号込みのcentered floatとして出します。
-
-このため、AvatarBeaconの出力はローカルクライアント上のアバター状態とVRChat OSC設定に依存します。
-他プレイヤーへOSC packetを直接送る仕組みではありません。
-
 ## YL-ATGとの関係
 
 AvatarBeacon は、YozoraKurage/YL-ATG ATG_ForAvatar_V0.0.3 を元にした派生物です。
@@ -87,10 +57,8 @@ AvatarBeacon は、YozoraKurage/YL-ATG ATG_ForAvatar_V0.0.3 を元にした派�
 簡単に変更点を記載します。
 
 - 精度下げてパラメーター数を半分にしたPrefabを用意。
-  - `AvatarBeacon_main.prefab` : 6パラメータ版。
-  - `AvatarBeacon_12.prefab` : 12パラメータ版。
-  - YL-ATGのと同じ精度。
-- 向き用に HeadForwardAnchor を追加
+  - `AvatarBeacon_main.prefab` : 6パラメータ版。アバターのパラメータ数に配慮。
+  - `AvatarBeacon_12.prefab` : 12パラメータ版。YL-ATGのと同じ精度。
 - 可視化用arrow mesh/materialを削除
 - 公開parameterを ATG/* から avatar_beacon/* に変更
 - 配置先を `Assets/PoppoWorks/AvatarBeacon` に変更。
