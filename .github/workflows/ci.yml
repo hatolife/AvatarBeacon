@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-package:
+    name: Source package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Determine AvatarBeacon version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            version="${GITHUB_REF_NAME}"
+          else
+            version="$(node -e "const fs=require('fs'); const m=fs.readFileSync('Assets/PoppoWorks/AvatarBeacon/Version.txt','utf8').match(/^AvatarBeacon Version: (.+)$/m); if(!m) process.exit(1); process.stdout.write(m[1]);")"
+          fi
+          if [[ ! "${version}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(a|b|rc)[0-9]+)?$ ]]; then
+            echo "Invalid AvatarBeacon version: ${version}" >&2
+            exit 1
+          fi
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+
+      - name: Check version metadata
+        run: node scripts/update-avatarbeacon-version.mjs "${{ steps.version.outputs.version }}" --check
+
+      - name: Check source tree
+        run: node scripts/check-source-tree.mjs .
+
+      - name: Package source zip
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+          zip_name="AvatarBeacon-${version}-source.zip"
+          zip_path="dist/${zip_name}"
+          rm -rf dist "${RUNNER_TEMP}/avatarbeacon-source-check"
+          mkdir -p dist "${RUNNER_TEMP}/avatarbeacon-source-check"
+          zip -r "${zip_path}" README.md Assets \
+            -x '*.unitypackage' '*/Library/*' '*/Temp/*' '*VRCSDK*' '*ModularAvatar*' '*Modular_Avatar*' '*Modular-Avatar*'
+          hash="$(sha256sum "${zip_path}" | awk '{print $1}')"
+          printf '%s  %s\n' "${hash}" "${zip_name}" > "${zip_path}.sha256"
+          unzip -q "${zip_path}" -d "${RUNNER_TEMP}/avatarbeacon-source-check"
+          node scripts/check-source-tree.mjs "${RUNNER_TEMP}/avatarbeacon-source-check"
+          sha256sum --check "${zip_path}.sha256"
+
+      - name: Upload source artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: avatarbeacon-source
+          path: |
+            dist/AvatarBeacon-${{ steps.version.outputs.version }}-source.zip
+            dist/AvatarBeacon-${{ steps.version.outputs.version }}-source.zip.sha256
